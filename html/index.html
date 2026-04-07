@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud Notes</title>
+</head>
+
+<body>
+
+<h1>My Notes App</h1>
+
+<button onclick="login()">Login with Google</button>
+
+<h2 id="money">₹0</h2>
+
+<button onclick="addMoney()">Add ₹50</button>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBGBwGYNBrfSifKAnWRg-j7DhqtaCJwMIk",
+  authDomain: "cloud-notes-7b6c8.firebaseapp.com",
+  projectId: "cloud-notes-7b6c8",
+  databaseURL: "https://cloud-notes-7b6c8-default-rtdb.firebaseio.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// Login
+const provider = new GoogleAuthProvider();
+
+window.login = function () {
+  signInWithPopup(auth, provider).then(() => {
+    alert("Login Successful");
+    loadMoney();
+  });
+};
+
+// Load Money
+function loadMoney() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const uid = user.uid;
+
+  get(ref(db, 'earnings/' + uid)).then((snapshot) => {
+    if (snapshot.exists()) {
+      document.getElementById("money").innerText = "₹" + snapshot.val().total;
+    } else {
+      document.getElementById("money").innerText = "₹0";
+    }
+  });
+}
+
+// Add Money
+window.addMoney = function () {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  const uid = user.uid;
+
+  get(ref(db, 'earnings/' + uid)).then((snapshot) => {
+    let current = 0;
+
+    if (snapshot.exists()) {
+      current = snapshot.val().total;
+    }
+
+    const newAmount = current + 50;
+
+    set(ref(db, 'earnings/' + uid), {
+      total: newAmount
+    });
+
+    document.getElementById("money").innerText = "₹" + newAmount;
+  });
+};
+
+</script>
+
+</body>
+</html>

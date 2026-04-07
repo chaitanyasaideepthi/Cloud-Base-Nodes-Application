@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cloud Notes Dashboard</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+body{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+}
+.header{
+    background:linear-gradient(to right,#ff512f,#dd2476);
+    color:white;
+    padding:18px 30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.logout-btn{
+    background:white;
+    border:none;
+    color:#dd2476;
+    padding:8px 18px;
+    border-radius:20px;
+    cursor:pointer;
+    font-weight:bold;
+}
+.dashboard{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    padding:50px;
+    flex-wrap:wrap;
+}
+.card{
+    background:white;
+    width:280px;
+    padding:30px;
+    text-align:center;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+.card img{
+    width:90px;
+    margin-bottom:15px;
+}
+.card h3{
+    margin-bottom:10px;
+    color:#6a11cb;
+}
+.card button{
+    background:linear-gradient(to right,#667eea,#764ba2);
+    color:white;
+    border:none;
+    padding:10px 25px;
+    border-radius:30px;
+    cursor:pointer;
+}
+
+/* POPUPS */
+.popup{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:30px;
+    width:380px;
+    border-radius:20px;
+    text-align:center;
+    z-index:1000;
+}
+.preview-img{
+    width:100%;
+    max-height:180px;
+    object-fit:cover;
+    border-radius:10px;
+    margin:10px 0;
+}
+.download-btn{
+    background:#667eea;
+    color:white;
+    border:none;
+    padding:6px 14px;
+    border-radius:15px;
+    cursor:pointer;
+}
+.pay-btn{
+    background:#ff9800;
+    color:white;
+    border:none;
+    padding:6px 14px;
+    border-radius:15px;
+    cursor:pointer;
+}
+.close{
+    background:#ff4b2b;
+    color:white;
+    border:none;
+    padding:10px;
+    border-radius:25px;
+    cursor:pointer;
+    margin-top:10px;
+}
+.submit{
+    background:#38ef7d;
+    color:white;
+    border:none;
+    padding:10px;
+    border-radius:25px;
+    cursor:pointer;
+}
+
+/* RECEIPT */
+.receipt{
+    text-align:left;
+    background:#f7f7f7;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>📚 Cloud Based Notes</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="dashboard">
+
+    <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png">
+        <h3>Upload Notes</h3>
+        <button onclick="openUpload()">Upload</button>
+    </div>
+
+    <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png">
+        <h3>View Notes</h3>
+        <button onclick="openView()">View</button>
+    </div>
+
+    <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
+        <h3>Earn Money</h3>
+        <button onclick="openEarn()">Earn</button>
+    </div>
+
+</div>
+
+<!-- UPLOAD -->
+<div class="popup" id="uploadBox">
+    <h3>Upload Notes</h3><br>
+    <input type="file" id="fileInput"><br><br>
+    <p><b>File Type:</b> Paid</p><br>
+    <button class="submit" onclick="uploadNotes()">Submit</button>
+    <button class="close" onclick="closeUpload()">Close</button>
+</div>
+
+<!-- VIEW -->
+<div class="popup" id="viewBox">
+    <h3>Uploaded Notes</h3>
+    <div id="notesList"></div>
+    <button class="close" onclick="closeView()">Close</button>
+</div>
+
+<!-- EARN -->
+<div class="popup" id="earnBox">
+    <h3>Earn Money</h3>
+    <p>💰 Total Earnings: ₹<span id="earnings">0</span></p>
+    <button class="close" onclick="closeEarn()">Close</button>
+</div>
+
+<!-- RECEIPT -->
+<div class="popup" id="receiptBox">
+    <h3>🧾 Payment Receipt</h3>
+    <div class="receipt" id="receiptDetails"></div>
+    <button class="close" onclick="closeReceipt()">Close</button>
+</div>
+
+<script>
+let uploadedFiles = [];
+let totalEarnings = 0;
+
+/* UPLOAD */
+function openUpload(){
+    document.getElementById("uploadBox").style.display="block";
+}
+function closeUpload(){
+    document.getElementById("uploadBox").style.display="none";
+}
+function uploadNotes(){
+    const file=document.getElementById("fileInput").files[0];
+    if(!file){ alert("Select a file"); return; }
+    uploadedFiles.push({ file, paid:false });
+    alert("File uploaded successfully!");
+    closeUpload();
+}
+
+/* VIEW */
+function openView(){
+    const list=document.getElementById("notesList");
+    list.innerHTML="";
+
+    if(uploadedFiles.length===0){
+        list.innerHTML="<p>No files uploaded</p>";
+    }
+
+    uploadedFiles.forEach((item,index)=>{
+        const url=URL.createObjectURL(item.file);
+        const isImage=item.file.type.startsWith("image");
+
+        let actionHTML = item.paid
+        ? `<a href="${url}" download="${item.file.name}">
+              <button class="download-btn">Download</button>
+           </a>`
+        : `<button class="pay-btn" onclick="payForFile(${index})">
+              Pay ₹25
+           </button>`;
+
+        list.innerHTML+=`
+        <div style="margin-bottom:15px;">
+            <p>📄 ${item.file.name}</p>
+            ${isImage ? `<img src="${url}" class="preview-img">` : ""}
+            ${actionHTML}
+            <hr>
+        </div>`;
+    });
+
+    document.getElementById("viewBox").style.display="block";
+}
+
+function payForFile(index){
+    if(confirm("Pay ₹25 to download this note?")){
+        uploadedFiles[index].paid=true;
+        totalEarnings+=25;
+        document.getElementById("earnings").innerText=totalEarnings;
+
+        generateReceipt(uploadedFiles[index].file.name);
+        openView();
+    }
+}
+
+/* RECEIPT */
+function generateReceipt(filename){
+    const receiptNo = "RCPT" + Math.floor(Math.random()*100000);
+    const date = new Date().toLocaleString();
+
+    document.getElementById("receiptDetails").innerHTML = `
+        <p><b>Receipt No:</b> ${receiptNo}</p>
+        <p><b>File Name:</b> ${filename}</p>
+        <p><b>Amount Paid:</b> ₹25</p>
+        <p><b>Payment Status:</b> Success</p>
+        <p><b>Date:</b> ${date}</p>
+    `;
+
+    document.getElementById("receiptBox").style.display="block";
+}
+
+function closeReceipt(){
+    document.getElementById("receiptBox").style.display="none";
+}
+
+/* CLOSE */
+function closeView(){ document.getElementById("viewBox").style.display="none"; }
+function openEarn(){ document.getElementById("earnBox").style.display="block"; }
+function closeEarn(){ document.getElementById("earnBox").style.display="none"; }
+
+/* LOGOUT */
+function logout(){
+    if(confirm("Are you sure you want to logout?")){
+        window.location.href="login.html";
+    }
+}
+</script>
+<script type="module" src="firebase.js"></script>
+<script type="module" src="notes.js"></script>
+
+
+
+</body>
+</html>

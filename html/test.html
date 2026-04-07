@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Firebase Test</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+</head>
+
+<body>
+
+<h2>Firebase Test</h2>
+
+<button onclick="testData()">Add Test Data</button>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "notesapp-1cc91.firebaseapp.com",
+  databaseURL: "https://notesapp-1cc91-default-rtdb.firebaseio.com",
+  projectId: "notesapp-1cc91",
+  storageBucket: "notesapp-1cc91.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+
+firebase.initializeApp(firebaseConfig);
+
+function testData(){
+
+firebase.database().ref("test").set({
+name:"bhavana",
+amount:100
+});
+
+alert("Data Sent to Firebase");
+
+}
+
+</script>
+
+</body>
+</html>
